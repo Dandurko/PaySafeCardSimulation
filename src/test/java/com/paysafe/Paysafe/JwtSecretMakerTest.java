@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.crypto.SecretKey;
 
-public class JwtSecretMaker {
+public class JwtSecretMakerTest {
     @Test
     public void generateSecretKey() {
         SecretKey key = Jwts.SIG.HS512.key().build();
