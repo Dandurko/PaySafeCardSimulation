@@ -1,5 +1,6 @@
 package com.paysafe.Paysafe.security.webtoken;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -38,4 +39,25 @@ public class JwtService {
         return Keys.hmacShaKeyFor(decodedKey);
     }
 
+    public String extractUsername(String jwt) {
+        Claims claims = getClaims(jwt);
+
+        return claims.getSubject();
+    }
+
+    private Claims getClaims(String jwt) {
+        Claims claims = Jwts.parser()
+                .verifyWith(generateKey())
+                .build()
+                .parseSignedClaims(jwt)
+                .getPayload();
+        return claims;
+    }
+
+    public boolean isTokenValid(String jwt) {
+        Claims claims = getClaims(jwt);
+
+
+        return claims.getExpiration().after(Date.from(Instant.now()));
+    }
 }
