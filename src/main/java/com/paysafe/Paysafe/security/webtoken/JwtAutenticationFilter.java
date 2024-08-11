@@ -21,31 +21,31 @@ public class JwtAutenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtService jwtService;
-
     @Autowired
     private MyUserDetailService myUserDetailService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
-        if(authHeader == null && !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request,response);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
             return;
         }
-        else{
-            String jwt = authHeader.substring(7);
-            String username = jwtService.extractUsername(jwt);
-            if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-               UserDetails userDetails =  myUserDetailService.loadUserByUsername(username);
-               if(userDetails != null && jwtService.isTokenValid(jwt)){
-                   UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                           username,userDetails.getPassword(),userDetails.getAuthorities()
-                   );
-                   authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                   SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-               }
+
+        String jwt = authHeader.substring(7);
+        String username = jwtService.extractUsername(jwt);
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = myUserDetailService.loadUserByUsername(username);
+            if (userDetails != null && jwtService.isTokenValid(jwt)) {
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                        username,
+                        userDetails.getPassword(),
+                        userDetails.getAuthorities()
+                );
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
-            filterChain.doFilter(request,response);
         }
+        filterChain.doFilter(request, response);
     }
 }

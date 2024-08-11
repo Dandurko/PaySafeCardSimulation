@@ -1,6 +1,7 @@
 package com.paysafe.Paysafe.security;
 
 import com.paysafe.Paysafe.security.webtoken.JwtAutenticationFilter;
+import com.paysafe.Paysafe.security.webtoken.JwtAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,9 +25,12 @@ public class SecurityConfiguration {
 
     @Autowired
     private MyUserDetailService myUserDetailService;
-
+    @Autowired
+    private JwtAuthenticationEntryPoint authenticationEntryPoint;
     @Autowired
     private JwtAutenticationFilter jwtAutenticationFilter;
+
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -35,15 +39,12 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(registry -> {
                     registry.requestMatchers( "/register/**","/authenticate").permitAll();
                     registry.requestMatchers("/admin/**").hasRole("ADMIN");
-                    registry.requestMatchers("/user/**").hasRole("USER");
+                    registry.requestMatchers("/user/**");
                     registry.anyRequest().authenticated();
                 })
-                .formLogin(httpSecurityFormLoginConfigurer -> {
-                    httpSecurityFormLoginConfigurer
-                            .successHandler(new AuthenticationSuccessHandler())
-                            .loginPage("/login").permitAll();
-                })
+                .formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
                 .addFilterBefore(jwtAutenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling( exception -> exception.authenticationEntryPoint(authenticationEntryPoint))
                 .build();
     }
 
